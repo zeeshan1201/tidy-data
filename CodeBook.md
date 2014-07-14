@@ -145,7 +145,6 @@ descFeatures = sub("\\(\\)", "", descFeatures)
 descFeatures = gsub("-", " ", descFeatures)
 ```
 
-###Objective 4
 ####Label the merged data with descriptive variable names
 ```
 colnames(mergeRequired) = descFeatures
@@ -154,10 +153,11 @@ colnames(mergeRequired) = descFeatures
 ```
 tidyData1 = cbind(mergeSubjectID, mergeActivity, mergeRequired)
 ```
-##save the tidy data 1
+####save the tidy data 1
 ```
 write.table(tidyData1, file = "./tidydata1.txt", sep=" ")
 ```
+###Objective 5
 ####Melt data
 ####Define id and variables
 ```
@@ -175,7 +175,7 @@ tidyMelt = melt(tidyData1, id = id, measure.vars = vars)
 ```
 tidyData2 = dcast(tidyMelt, Subject + Activity ~ variable, mean)
 ```
-##save the tidy data 2
+####save the tidy data 2
 ```
 write.table(tidyData1, file = "./tidydata2.txt", sep=" ")
 ```
