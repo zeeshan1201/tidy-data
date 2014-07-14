@@ -181,3 +181,4 @@ tidyData2 = dcast(tidyMelt, Subject + Activity ~ variable, mean)
 ```
 write.table(tidyData1, file = "./tidydata2.txt", sep=" ")
 ```
+#DONE
