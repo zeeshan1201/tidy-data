@@ -16,7 +16,7 @@ Here are the data for the project:
 
 https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
 
-#### For each record it is provided:
+##### For each record it is provided:
 
 * Triaxial acceleration from the accelerometer (total acceleration) and the estimated body acceleration.
 * Triaxial Angular velocity from the gyroscope. 
@@ -24,7 +24,7 @@ https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Datas
 * Its activity label. 
 * An identifier of the subject who carried out the experiment.
 
-#### The dataset includes the following files:
+##### The dataset includes the following files:
 
 * 'features_info.txt': Shows information about the variables used on the feature vector.
 * 'features.txt': List of all features.
@@ -49,34 +49,34 @@ Finally a Fast Fourier Transform (FFT) was applied to some of these signals prod
 These signals were used to estimate variables of the feature vector for each pattern:  
 '-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
 
-#### Work flow
+##### Work flow
 
-####Read features
+#####Read features
 ```
 features = read.table("./UCI HAR Dataset//features.txt")
 ```
-####The dataframe obtained has features in the second column. So, convert dataframe feature variable into character vector
+#####The dataframe obtained has features in the second column. So, convert dataframe feature variable into character vector
 ```
 features = as.character(features[, 2])
 ```
-####Read Training Set data and other training data
+#####Read Training Set data and other training data
 ```
 trainSet = read.table("./UCI HAR Dataset/train/X_train.txt"
 subject_train = read.table("./UCI HAR Dataset/train/subject_train.txt")
 activity_train = read.table("./UCI HAR Dataset/train/y_train.txt")
 ```
-####Check if data contains NA values
+#####Check if data contains NA values
 ```
 any(is.na(trainSet)) 
 ```
 
-####Read Test set data and other test data
+#####Read Test set data and other test data
 ```
 testSet = read.table("./UCI HAR Dataset/test//X_test.txt")
 subject_test = read.table("./UCI HAR Dataset/test/subject_test.txt")
 activity_test = read.table("./UCI HAR Dataset/test/y_test.txt")
 ```
-####Check if data contains NA values
+#####Check if data contains NA values
 ```
 any(is.na(testSet)) 
 ```
@@ -91,20 +91,20 @@ mergeSubjectID = rbind(subject_train, subject_test)
 
 ###Objective 2
 
-####Find index of the columns that contain the measurements on the mean and standard deviation for each measurement
+#####Find index of the columns that contain the measurements on the mean and standard deviation for each measurement
 ```
 index = grep("(mean|std)\\(\\)", features)
 ```
-####Extracts only the measurements on the mean and standard deviation for each measurement
+#####Extracts only the measurements on the mean and standard deviation for each measurement
 ```
 mergeRequired = mergeData[, index]
 ```
-####Extract only required features
+#####Extract only required features
 ```
 featuresRequired = features[index]
 ```
 ###Objective 3
-####Label Activity
+#####Label Activity
 ```
 mergeActivity = mergeActivity[, 1]
 mergeActivity = sub("1", "Walking",mergeActivity)
@@ -118,13 +118,13 @@ mergeActivity = as.data.frame(mergeActivity)
 names(mergeActivity) = "Activity"
 ```
 
-####Define variable name for Subject ID
+#####Define variable name for Subject ID
 ```
 names(mergeSubjectID) = "Subject"
 ```
 
 ###Objective 4
-####Converting features to descriptive variable names
+#####Converting features to descriptive variable names
 ```
 descFeatures = sub("^t", "Time of ", featuresRequired)
 
@@ -147,37 +147,37 @@ descFeatures = sub("\\(\\)", "", descFeatures)
 descFeatures = gsub("-", " ", descFeatures)
 ```
 
-####Label the merged data with descriptive variable names
+#####Label the merged data with descriptive variable names
 ```
 colnames(mergeRequired) = descFeatures
 ```
-####Generate tidy data 1
+#####Generate tidy data 1
 ```
 tidyData1 = cbind(mergeSubjectID, mergeActivity, mergeRequired)
 ```
-####save the tidy data 1
+#####save the tidy data 1
 ```
 write.table(tidyData1, file = "./tidydata1.txt", sep=" ")
 ```
 ###Objective 5
-####Melt data
-####Define id and variables
+#####Melt data
+#####Define id and variables
 ```
 id = names(c(mergeSubjectID, mergeActivity))
 vars = descFeatures
 ```
 
-####Reshape into long and skinny data
+#####Reshape into long and skinny data
 ```
 library(reshape2)
 tidyMelt = melt(tidyData1, id = id, measure.vars = vars)
 ```
 
-####Reformat the dataset average of each variable for each activity and each subject. 
+#####Reformat the dataset average of each variable for each activity and each subject. 
 ```
 tidyData2 = dcast(tidyMelt, Subject + Activity ~ variable, mean)
 ```
-####save the tidy data 2
+#####save the tidy data 2
 ```
 write.table(tidyData1, file = "./tidydata2.txt", sep=" ")
 ```
