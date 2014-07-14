@@ -41,12 +41,14 @@ Finally a Fast Fourier Transform (FFT) was applied to some of these signals prod
 These signals were used to estimate variables of the feature vector for each pattern:  
 '-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
 
-### Work flow
+#### Work flow
 
-#Read features
+####Read features
+```
 features = read.table("./UCI HAR Dataset//features.txt")
-#The dataframe obtained has features in the second column
-#Convert dataframe feature variable into character vector
+```
+####The dataframe obtained has features in the second column
+####Convert dataframe feature variable into character vector
 features = as.character(features[, 2])
 
 #Read Training Set data and other training data
