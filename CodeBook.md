@@ -1,6 +1,6 @@
 ### Introduction
 
-This file describes the data, the variables, and the work that has been performed to clean up the data.
+This Codebook describes the data, the variables, and the workflow of the script run_analysis.R to clean up the data. The unzipped "UCI HAR Dataset" directory should be in the directory where the script "run_analysis.R" is present and it should be the working directory.
 
 ### Data Set Description
 
@@ -41,86 +41,109 @@ Finally a Fast Fourier Transform (FFT) was applied to some of these signals prod
 These signals were used to estimate variables of the feature vector for each pattern:  
 '-XYZ' is used to denote 3-axial signals in the X, Y and Z directions.
 
-### Work/Transformations
+### Work flow
 
-#### Load test and training sets and the activities
+#Read features
+features = read.table("./UCI HAR Dataset//features.txt")
+#The dataframe obtained has features in the second column
+#Convert dataframe feature variable into character vector
+features = as.character(features[, 2])
 
-The data set has been stored in the `UCI HAR Dataset/` directory.
+#Read Training Set data and other training data
+trainSet = read.table("./UCI HAR Dataset/train/X_train.txt")
+subject_train = read.table("./UCI HAR Dataset/train/subject_train.txt")
+activity_train = read.table("./UCI HAR Dataset/train/y_train.txt")
 
-The CDN url provided by the instructor is used instead of the original location, to offload the traffic to the UCI server.
+#Check if data contains NA values
+any(is.na(trainSet)) 
 
-The `unzip` function is used to extract the zip file in this directory.
+#Read Test set data and other test data
+testSet = read.table("./UCI HAR Dataset/test//X_test.txt")
+subject_test = read.table("./UCI HAR Dataset/test/subject_test.txt")
+activity_test = read.table("./UCI HAR Dataset/test/y_test.txt")
 
-```
-fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-download.file(fileUrl, destfile = "Dataset.zip", method = "curl")
-unzip("Dataset.zip")
-```
+#Check if data contains NA values
+any(is.na(testSet)) 
 
-`read.table` is used to load the data to R environment for the data, the activities and the subject of both test and training datasets.
+#Objective 1
+#Merges the training and the test sets to create one data set
+mergeData = rbind(trainSet, testSet)
+mergeActivity = rbind(activity_train, activity_test)
+mergeSubjectID = rbind(subject_train, subject_test)
 
-```
-testData <- read.table("./UCI HAR Dataset/test/X_test.txt",header=FALSE)
-testData_act <- read.table("./UCI HAR Dataset/test/y_test.txt",header=FALSE)
-testData_sub <- read.table("./UCI HAR Dataset/test/subject_test.txt",header=FALSE)
-trainData <- read.table("./UCI HAR Dataset/train/X_train.txt",header=FALSE)
-trainData_act <- read.table("./UCI HAR Dataset/train/y_train.txt",header=FALSE)
-trainData_sub <- read.table("./UCI HAR Dataset/train/subject_train.txt",header=FALSE)
-```
+#Objective 2
 
-#### Descriptive activity names to name the activities in the data set
+#Find index of the columns that contain the measurements on 
+#the mean and standard deviation for each measurement
+index = grep("(mean|std)\\(\\)", features)
 
-The class labels linked with their activity names are loaded from the `activity_labels.txt` file. The numbers of the `testData_act` and `trainData_act` data frames are replaced by those names:
+#Extracts only the measurements on the mean and standard deviation for each measurement
+mergeRequired = mergeData[, index]
 
-```
-activities <- read.table("./UCI HAR Dataset/activity_labels.txt",header=FALSE,colClasses="character")
-testData_act$V1 <- factor(testData_act$V1,levels=activities$V1,labels=activities$V2)
-trainData_act$V1 <- factor(trainData_act$V1,levels=activities$V1,labels=activities$V2)
-```
+#Extract only required features
+featuresRequired = features[index]
 
-#### Appropriately labels the data set with descriptive activity names
+#Objective 3
+#Label Activity
+mergeActivity = mergeActivity[, 1]
+mergeActivity = sub("1", "Walking",mergeActivity)
+mergeActivity = sub("2", "Walking Upstairs",mergeActivity)
+mergeActivity = sub("3", "Walking Downstairs",mergeActivity)
+mergeActivity = sub("4", "Sitting",mergeActivity)
+mergeActivity = sub("5", "Standing",mergeActivity)
+mergeActivity = sub("6", "Laying",mergeActivity)
 
-Each data frame of the data set is labeled - using the `features.txt` - with the information about the variables used on the feature vector. The `Activity` and `Subject` columns are also named properly before merging them to the test and train dataset.
+mergeActivity = as.data.frame(mergeActivity)
+names(mergeActivity) = "Activity"
 
-```
-features <- read.table("./UCI HAR Dataset/features.txt",header=FALSE,colClasses="character")
-colnames(testData)<-features$V2
-colnames(trainData)<-features$V2
-colnames(testData_act)<-c("Activity")
-colnames(trainData_act)<-c("Activity")
-colnames(testData_sub)<-c("Subject")
-colnames(trainData_sub)<-c("Subject")
-```
+#Define variable name for Subject ID
+names(mergeSubjectID) = "Subject"
 
-#### Merge test and training sets into one data set, including the activities
+#Objective 4
+#Converting features to descriptive variable names
+descFeatures = sub("^t", "Time of ", featuresRequired)
 
-The `Activity` and `Subject` columns are appended to the test and train data frames, and then are both merged in the `bigData` data frame.
+descFeatures = sub("^f", "Fast Fourier Transform of ", descFeatures)
 
-```
-testData<-cbind(testData,testData_act)
-testData<-cbind(testData,testData_sub)
-trainData<-cbind(trainData,trainData_act)
-trainData<-cbind(trainData,trainData_sub)
-bigData<-rbind(testData,trainData)
-```
+descFeatures = sub("Acc", " Acceleration", descFeatures)
 
-#### Extract only the measurements on the mean and standard deviation for each measurement
+descFeatures = sub("BodyBody", "Body", descFeatures)
 
-`mean()` and `sd()` are used against `bigData` via `sapply()` to extract the requested measurements.
+descFeatures = sub("Gyro", " Angular Velocity", descFeatures)
 
-```
-bigData_mean<-sapply(bigData,mean,na.rm=TRUE)
-bigData_sd<-sapply(bigData,sd,na.rm=TRUE)
-```
+descFeatures = sub("[Jj]erk", " Jerk", descFeatures)
 
-A warning is returned for the `Activity` column because it's not numeric. This does not impact the calcucation of the rest and NA is stored in the new data frames instead, since mean and sd are not applicable in this case. The same applies for `Subject` where we're not interested about the mean and sd, but since it's numeric already there is no warning.
+descFeatures = sub("Mag", " Magnitude", descFeatures)
 
-#### Creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+#Remove special character "()"
+descFeatures = sub("\\(\\)", "", descFeatures)
 
-Finaly the desired result, a `tidy` data table is created with the average of each measurement per activity/subject combination. The new dataset is saved in `tidy.csv` file.
+#Remove special character "-"
+descFeatures = gsub("-", " ", descFeatures)
 
-```
-DT <- data.table(bigData)
-tidy<-DT[,lapply(.SD,mean),by="Activity,Subject"]
-write.table(tidy,file="tidy.csv",sep=",",col.names = NA)
-```
+#Objective 4
+#Label the merged data with descriptive variable names
+colnames(mergeRequired) = descFeatures
+
+#Generate tidy data 1
+tidyData1 = cbind(mergeSubjectID, mergeActivity, mergeRequired)
+
+#save the tidy data 1
+write.table(tidyData1, file = "./tidydata1.txt", sep=" ")
+
+#Melt data
+#Define id and variables
+id = names(c(mergeSubjectID, mergeActivity))
+vars = descFeatures
+#vars = c("Activity", descFeatures)
+
+
+#Reshape into long and skinny data
+library(reshape2)
+tidyMelt = melt(tidyData1, id = id, measure.vars = vars)
+
+#Reformat the dataset average of each variable for each activity and each subject. 
+tidyData2 = dcast(tidyMelt, Subject + Activity ~ variable, mean)
+
+#save the tidy data 2
+write.table(tidyData1, file = "./tidydata2.txt", sep=" ")
