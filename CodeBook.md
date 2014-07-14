@@ -119,7 +119,9 @@ names(mergeActivity) = "Activity"
 ```
 
 ####Define variable name for Subject ID
+```
 names(mergeSubjectID) = "Subject"
+```
 
 ###Objective 4
 ####Converting features to descriptive variable names
